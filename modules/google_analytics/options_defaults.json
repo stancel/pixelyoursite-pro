@@ -19,7 +19,7 @@
   "comment_event_enabled": true,
   "form_event_enabled": true,
 
-  "woo_variable_as_simple": false,
+  "woo_variable_as_simple": true,
   "woo_content_id": "product_id",
   "woo_content_id_prefix": "",
   "woo_content_id_suffix": "",
@@ -43,6 +43,7 @@
   "woo_view_category_enabled": true,
   "woo_affiliate_enabled": true,
   "woo_paypal_enabled": true,
+  "woo_select_content_enabled": true,
 
   "edd_content_id": "download_id",
   "edd_content_id_prefix": "",

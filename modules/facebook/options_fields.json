@@ -43,5 +43,15 @@
   "edd_remove_from_cart_enabled": "checkbox",
   "edd_add_to_cart_enabled": "checkbox",
   "edd_view_content_enabled": "checkbox",
-  "edd_view_category_enabled": "checkbox"
+  "edd_view_category_enabled": "checkbox",
+
+  "fdp_content_type" : "select",
+  "fdp_view_content_enabled": "checkbox",
+  "fdp_view_category_enabled": "checkbox",
+  "fdp_add_to_cart_enabled": "checkbox",
+  "fdp_add_to_cart_event_fire_scroll": "text",
+  "fdp_purchase_enabled": "checkbox",
+  "fdp_purchase_event_fire" : "select",
+  "fdp_purchase_event_fire_scroll": "text",
+  "fdp_purchase_event_fire_css": "text"
 }

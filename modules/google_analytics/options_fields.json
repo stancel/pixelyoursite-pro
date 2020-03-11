@@ -41,6 +41,7 @@
   "woo_view_category_enabled": "checkbox",
   "woo_affiliate_enabled": "checkbox",
   "woo_paypal_enabled": "checkbox",
+  "woo_select_content_enabled": "checkbox",
 
   "edd_content_id": "select",
   "edd_content_id_prefix": "text",

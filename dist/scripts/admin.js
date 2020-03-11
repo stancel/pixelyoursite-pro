@@ -39,8 +39,25 @@ jQuery( document ).ready(function($) {
         }
         calculateStepsNums();
     }
+    updateFDPValue($("#pys_facebook_fdp_purchase_event_fire"));
+    $("#pys_facebook_fdp_purchase_event_fire").change(function () {
 
+        updateFDPValue(this);
+    })
 
 
 
 });
+
+function updateFDPValue(input) {
+    if($(input).val() == "scroll_pos") {
+        $("#fdp_purchase_event_fire_scroll_block").show();
+        $("#pys_facebook_fdp_purchase_event_fire_css").hide()
+    } else  if($(input).val() == "css_click") {
+        $("#fdp_purchase_event_fire_scroll_block").hide();
+        $("#pys_facebook_fdp_purchase_event_fire_css").show()
+    } else {
+        $("#fdp_purchase_event_fire_scroll_block").hide();
+        $("#pys_facebook_fdp_purchase_event_fire_css").hide()
+    }
+}

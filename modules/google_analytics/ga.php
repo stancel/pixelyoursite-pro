@@ -140,6 +140,18 @@ class GA extends Settings implements Pixel {
 			case 'woo_view_category':
 				return $this->getWooViewCategoryEventParams();
 
+            case 'woo_view_item_list_single':
+                return $this->getWooViewItemListSingleParams();
+
+            case "woo_view_item_list_search":
+                return $this->getWooViewItemListSearch();
+
+            case "woo_view_item_list_shop":
+                return $this->getWooViewItemListShop();
+
+            case "woo_view_item_list_tag":
+                return $this->getWooViewItemListTag();
+
 			case 'woo_initiate_checkout':
 				return $this->getWooInitiateCheckoutEventParams();
 
@@ -195,6 +207,9 @@ class GA extends Settings implements Pixel {
 
 			case 'complete_registration':
 				return $this->getCompleteRegistrationEventParams();
+
+            case "woo_select_content":
+                return $this->getWooSelectContent($args);
 
 			default:
 				return false;   // event does not supported
@@ -391,6 +406,338 @@ class GA extends Settings implements Pixel {
 
 	}
 
+	private function getWooViewItemListTag() {
+        global $posts;
+
+        if ( ! $this->getOption( 'woo_view_category_enabled' ) ) {
+            return false;
+        }
+
+        $list_name =  single_tag_title( '', false )." - Tag";
+
+        $items = array();
+
+        for ( $i = 0; $i < count( $posts ); $i ++ ) {
+
+            if ( $posts[ $i ]->post_type !== 'product' ) {
+                continue;
+            }
+
+            $item = array(
+                'id'            => Helpers\getWooProductContentId($posts[ $i ]->ID),
+                'name'          => $posts[ $i ]->post_title,
+                'category'      => implode( '/', getObjectTerms( 'product_cat', $posts[ $i ]->ID ) ),
+                'quantity'      => 1,
+                'price'         => getWooProductPriceToDisplay( $posts[ $i ]->ID ),
+                'list_position' => $i + 1,
+                'list_name'      => $list_name,
+            );
+
+            $items[] = $item;
+
+        }
+
+        $params = array(
+            'event_category'  => 'ecommerce',
+            'event_label'     => $list_name,
+            'items'           => $items,
+        );
+
+        return array(
+            'name'  => 'view_item_list',
+            'data'  => $params,
+        );
+    }
+
+	private function getWooViewItemListShop() {
+        /**
+         * @var \WC_Product $product
+         * @var $related_products \WC_Product[]
+         */
+
+        global $posts;
+
+        if ( ! $this->getOption( 'woo_view_category_enabled' ) ) {
+            return false;
+        }
+
+
+        $list_name = woocommerce_page_title(false);
+
+        $items = array();
+        $i = 0;
+
+        foreach ( $posts as $post) {
+            if( $post->post_type != 'product') continue;
+            $item = array(
+                'id'            => Helpers\getWooProductContentId($post->ID),
+                'name'          => $post->post_title ,
+                'category'      => implode( '/', getObjectTerms( 'product_cat', $post->ID ) ),
+                'quantity'      => 1,
+                'price'         => getWooProductPriceToDisplay( $post->ID ),
+                'list_position' => $i + 1,
+                'list_name'     => $list_name,
+            );
+
+            $items[] = $item;
+            $i++;
+        }
+
+        $params = array(
+            'event_category'  => 'ecommerce',
+            'event_label'     => $list_name,
+            'items'           => $items,
+        );
+
+
+        return array(
+            'name'  => 'view_item_list',
+            'data'  => $params,
+        );
+    }
+
+    private function getWooViewItemListSearch() {
+        /**
+         * @var \WC_Product $product
+         * @var $related_products \WC_Product[]
+         */
+
+        global $posts;
+
+        if ( ! $this->getOption( 'woo_view_category_enabled' ) ) {
+            return false;
+        }
+
+
+
+        $list_name = "WooCommerce Search";
+
+        $items = array();
+        $i = 0;
+
+        foreach ( $posts as $post) {
+            if( $post->post_type != 'product') continue;
+            $item = array(
+                'id'            => Helpers\getWooProductContentId($post->ID),
+                'name'          => $post->post_title ,
+                'category'      => implode( '/', getObjectTerms( 'product_cat', $post->ID ) ),
+                'quantity'      => 1,
+                'price'         => getWooProductPriceToDisplay( $post->ID ),
+                'list_position' => $i + 1,
+                'list_name'          => $list_name,
+            );
+
+            $items[] = $item;
+            $i++;
+        }
+
+        $params = array(
+            'event_category'  => 'ecommerce',
+            'event_label'     => $list_name,
+            'items'           => $items,
+        );
+
+
+        return array(
+            'name'  => 'view_item_list',
+            'data'  => $params,
+        );
+    }
+
+
+    private function getWooSelectContent($type) {
+
+        $items = array();
+
+	    if($type == "search" || $type == "shop") {
+            global $posts;
+
+            if($type == "shop") {
+                $list_name =  woocommerce_page_title(false);
+            } else {
+                $list_name = "WooCommerce Search";
+            }
+
+            $i = 0;
+            foreach ($posts as $post) {
+                if( $post->post_type != 'product') continue;
+                $item = array(
+                    'id'            => Helpers\getWooProductContentId($post->ID),
+                    'name'          => $post->post_title ,
+                    'category'      => implode( '/', getObjectTerms( 'product_cat', $post->ID ) ),
+                    'quantity'      => 1,
+                    'price'         => getWooProductPriceToDisplay( $post->ID ),
+                    'list_position' => $i + 1,
+                    'list_name'     => $list_name,
+                );
+
+                $items[$post->ID] = $item;
+                $i++;
+            }
+        }
+        if($type == "single") {
+
+            $product = wc_get_product( get_the_ID() );
+
+            $args = array(
+                'posts_per_page' => 4,
+                'columns'        => 4,
+            );
+            $args = apply_filters( 'woocommerce_output_related_products_args', $args );
+
+            $related_products = array_map( 'wc_get_product', Helpers\custom_wc_get_related_products( get_the_ID(), $args['posts_per_page'],$product->get_upsell_ids() ));
+            $related_products = wc_products_array_orderby( $related_products, 'rand', 'desc' );
+
+
+
+            $list_name = $product->get_name()." - Related products";
+            $i = 0;
+
+            foreach ( $related_products as $relate) {
+
+                if(!$relate) continue;
+
+                $item = array(
+                    'id'            => Helpers\getWooProductContentId($relate->get_id()),
+                    'name'          => $relate->get_title(),
+                    'category'      => implode( '/', getObjectTerms( 'product_cat', $relate->get_id() ) ),
+                    'quantity'      => 1,
+                    'price'         => getWooProductPriceToDisplay( $relate->get_id() ),
+                    'list_position' => $i + 1,
+                    'list_name'          => $list_name,
+                );
+
+                $items[$relate->get_id()] = $item;
+                $i++;
+            }
+        }
+
+        if($type == "category") {
+            global $posts;
+            $product_category = "";
+            $term = get_term_by( 'slug', get_query_var( 'term' ), 'product_cat' );
+            if ( $term ) {
+                $product_category = $term->name;
+            }
+
+            $list_name =  $product_category." - Category";
+
+
+
+            for ( $i = 0; $i < count( $posts ); $i ++ ) {
+
+                if ( $posts[ $i ]->post_type !== 'product' ) {
+                    continue;
+                }
+
+                $item = array(
+                    'id'            => Helpers\getWooProductContentId($posts[ $i ]->ID),
+                    'name'          => $posts[ $i ]->post_title,
+                    'category'      => implode( '/', getObjectTerms( 'product_cat', $posts[ $i ]->ID ) ),
+                    'quantity'      => 1,
+                    'price'         => getWooProductPriceToDisplay( $posts[ $i ]->ID ),
+                    'list_position' => $i + 1,
+                    'list_name'     => $list_name,
+                );
+
+                $items[$posts[ $i ]->ID] = $item;
+            }
+        }
+
+        if($type == "tag") {
+            global $posts;
+
+            $list_name = single_tag_title( '', false )." - Tag";
+
+            for ( $i = 0; $i < count( $posts ); $i ++ ) {
+
+                if ( $posts[ $i ]->post_type !== 'product' ) {
+                    continue;
+                }
+
+                $item = array(
+                    'id'            => Helpers\getWooProductContentId($posts[ $i ]->ID),
+                    'name'          => $posts[ $i ]->post_title,
+                    'category'      => implode( '/', getObjectTerms( 'product_cat', $posts[ $i ]->ID ) ),
+                    'quantity'      => 1,
+                    'price'         => getWooProductPriceToDisplay( $posts[ $i ]->ID ),
+                    'list_position' => $i + 1,
+                    'list_name'     => $list_name,
+                );
+
+                $items[$posts[ $i ]->ID] = $item;
+            }
+        }
+
+        return $items;
+    }
+
+
+	private function getWooViewItemListSingleParams() {
+        /**
+         * @var \WC_Product $product
+         * @var $related_products \WC_Product[]
+         */
+        $product = wc_get_product( get_the_ID() );
+
+	    if ( !$product || ! $this->getOption( 'woo_view_category_enabled' ) ) {
+            return false;
+        }
+
+        $related_products = array();
+
+        $args = array(
+            'posts_per_page' => 4,
+            'columns'        => 4,
+        );
+        $args = apply_filters( 'woocommerce_output_related_products_args', $args );
+
+        $ids =  Helpers\custom_wc_get_related_products( get_the_ID(), $args['posts_per_page'] );
+
+        foreach ( $ids as $id) {
+            $rel = wc_get_product($id);
+            if($rel) {
+                $related_products[] = $rel;
+            }
+        }
+
+
+
+        $list_name = $product->get_name()." - Related products";
+
+        $items = array();
+        $i = 0;
+
+        foreach ( $related_products as $relate) {
+
+            $item = array(
+                'id'            => Helpers\getWooProductContentId($relate->get_id()),
+                'name'          => $relate->get_title(),
+                'category'      => implode( '/', getObjectTerms( 'product_cat', $relate->get_id() ) ),
+                'quantity'      => 1,
+                'price'         => getWooProductPriceToDisplay( $relate->get_id() ),
+                'list_position' => $i + 1,
+                'list_name'     => $list_name,
+            );
+
+            $items[] = $item;
+            $i++;
+        }
+
+        $params = array(
+            'event_category'  => 'ecommerce',
+            'event_label'     => $list_name,
+            'items'           => $items,
+            'non_interaction' => $this->getOption( 'woo_view_category_non_interactive' ),
+        );
+
+
+        return array(
+            'name'  => 'view_item_list',
+            'data'  => $params,
+        );
+    }
+
 	private function getWooViewCategoryEventParams() {
 		global $posts;
 
@@ -398,24 +745,16 @@ class GA extends Settings implements Pixel {
 			return false;
 		}
         
-        $product_categories = array();
+        $product_category = "";
 		$term = get_term_by( 'slug', get_query_var( 'term' ), 'product_cat' );
 		
 		if ( $term ) {
-            $parent_ids = get_ancestors( $term->term_id, 'product_cat', 'taxonomy' );
-            $product_categories[] = $term->name;
-            
-            foreach ( $parent_ids as $term_id ) {
-                $parent_term = get_term_by( 'id', $term_id, 'product_cat' );
-                $product_categories[] = $parent_term->name;
-            }
+            $product_category = $term->name;
         }
-        
-		$list_name = implode( '/', array_reverse( $product_categories ) );
+
+        $list_name =  $product_category." - Category";
 
 		$items = array();
-		$product_ids = array();
-		$total_value = 0;
 
 		for ( $i = 0; $i < count( $posts ); $i ++ ) {
 			
@@ -430,12 +769,10 @@ class GA extends Settings implements Pixel {
 				'quantity'      => 1,
 				'price'         => getWooProductPriceToDisplay( $posts[ $i ]->ID ),
 				'list_position' => $i + 1,
-				'list'          => $list_name,
+				'list_name'          => $list_name,
 			);
 
 			$items[] = $item;
-			$product_ids[] = $item['id'];
-			$total_value += $item['price'];
 
 		}
 		
@@ -445,15 +782,6 @@ class GA extends Settings implements Pixel {
 			'items'           => $items,
 			'non_interaction' => $this->getOption( 'woo_view_category_non_interactive' ),
 		);
-		
-		$dyn_remarketing = array(
-			'product_id'  => $product_ids,
-			'page_type'   => 'category',
-			'total_value' => $total_value,
-		);
-		
-		$dyn_remarketing = Helpers\adaptDynamicRemarketingParams( $dyn_remarketing );
-		$params = array_merge( $params, $dyn_remarketing );
 
 		return array(
 			'name'  => 'view_item_list',
@@ -506,18 +834,30 @@ class GA extends Settings implements Pixel {
 			return false;
 		}
         $contentId = Helpers\getWooProductContentId($product_id);
-		$product = get_post( $product_id );
+		$product = wc_get_product( $product_id );
 		$price = getWooProductPriceToDisplay( $product_id, 1 );
-		
+
+        if ( $product->get_type() == 'variation' ) {
+            $parentId = $product->get_parent_id();
+            $name = $product->get_title();
+            $category = implode( '/', getObjectTerms( 'product_cat', $parentId ) );
+            $variation_name = implode("/", $product->get_variation_attributes());
+        } else {
+            $name = $product->get_name();
+            $category = implode( '/', getObjectTerms( 'product_cat', $product_id ) );
+            $variation_name = null;
+        }
+
 		$params = array(
 			'event_category'  => 'ecommerce',
 			'items'           => array(
 				array(
 					'id'       => $contentId,
-					'name'     => $product->post_title,
-					'category' => implode( '/', getObjectTerms( 'product_cat', $product_id ) ),
+					'name'     => $name,
+					'category' => $category,
 					'quantity' => 1,
 					'price'    => $price,
+                    'variant'  => $variation_name,
 				),
 			),
 			'non_interaction' => $this->getOption( 'woo_add_to_cart_non_interactive' ),
@@ -563,15 +903,28 @@ class GA extends Settings implements Pixel {
 
         $product_id = Helpers\getWooCartItemId( $cart_item );
         $content_id = Helpers\getWooProductContentId( $product_id );
+        $price = getWooProductPriceToDisplay( $product_id, $cart_item['quantity'] );
 
-		$product = get_post( $product_id );
+        $product = get_post( $product_id );
 
 		if ( ! empty( $cart_item['variation_id'] ) ) {
-			$variation = get_post( (int) $cart_item['variation_id'] );
-			$variation_name = $variation->post_title;
+			$variation = wc_get_product( (int) $cart_item['variation_id'] );
+            if(is_a($variation, 'WC_Product_Variation')) {
+                $parentId = $variation->get_parent_id();
+                $name = $variation->get_title();
+                $categories = implode( '/', getObjectTerms( 'product_cat', $parentId ) );
+                $variation_name = implode("/", $variation->get_variation_attributes());
+            } else {
+                $name = $product->post_title;
+                $variation_name = null;
+                $categories = implode( '/', getObjectTerms( 'product_cat', $product_id ) );
+            }
 		} else {
+            $name = $product->post_title;
 			$variation_name = null;
+            $categories = implode( '/', getObjectTerms( 'product_cat', $product_id ) );
 		}
+
 
 		return array(
 			'data' => array(
@@ -580,10 +933,10 @@ class GA extends Settings implements Pixel {
 				'items'           => array(
 					array(
 						'id'       => $content_id,
-						'name'     => $product->post_title,
-						'category' => implode( '/', getObjectTerms( 'product_cat', $product_id ) ),
+						'name'     => $name,
+						'category' => $categories,
 						'quantity' => $cart_item['quantity'],
-						'price'    => getWooProductPriceToDisplay( $product_id, $cart_item['quantity'] ),
+						'price'    => $price,
 						'variant'  => $variation_name,
 					),
 				),
@@ -741,11 +1094,24 @@ class GA extends Settings implements Pixel {
 
 			$post    = get_post( $product_id );
 			$product = wc_get_product( $product_id);
-			
+
+
 			if ( $line_item['variation_id'] ) {
-				$variation      = get_post( $line_item['variation_id'] );
-				$variation_name = $variation->post_title;
+
+                $variation = wc_get_product( (int) $line_item['variation_id'] );
+
+                if(is_a($variation, 'WC_Product_Variation')) {
+                    $name = $variation->get_title();
+                    $categories = implode( '/', getObjectTerms( 'product_cat', $variation->get_parent_id() ) );
+                    $variation_name = implode("/", $variation->get_variation_attributes());
+                } else {
+                    $name = $post->post_title;
+                    $categories = implode( '/', getObjectTerms( 'product_cat', $product_id ) );
+                    $variation_name = null;
+                }
 			} else {
+                $name = $post->post_title;
+			    $categories = implode( '/', getObjectTerms( 'product_cat', $product_id ) );
 				$variation_name = null;
 			}
 			
@@ -779,11 +1145,11 @@ class GA extends Settings implements Pixel {
 				}
 				
 			}
-			
+
 			$item = array(
 				'id'       => $content_id,
-				'name'     => $post->post_title,
-				'category' => implode( '/', getObjectTerms( 'product_cat', $post->ID ) ),
+				'name'     => $name,
+				'category' => $categories,
 				'quantity' => $qty,
 				'price'    => $price,
 				'variant'  => $variation_name,
@@ -897,20 +1263,34 @@ class GA extends Settings implements Pixel {
 
             $product_id = Helpers\getWooCartItemId( $cart_item );
             $content_id = Helpers\getWooProductContentId( $product_id );
+            $price = getWooProductPriceToDisplay( $product_id );
 
 			if ( $cart_item['variation_id'] ) {
-				$variation = get_post( $cart_item['variation_id'] );
-				$variation_name = $variation->post_title;
+                $variation = wc_get_product( (int) $cart_item['variation_id'] );
+
+                if(is_a($variation, 'WC_Product_Variation')) {
+                    $name = $variation->get_title();
+                    $category = implode('/', getObjectTerms('product_cat', $variation->get_parent_id()));
+                    $variation_name = implode("/", $variation->get_variation_attributes());
+                } else {
+                    $name = $product->post_title;
+                    $variation_name = null;
+                    $category = implode( '/', getObjectTerms( 'product_cat', $product_id ) );
+                }
+
 			} else {
+                $name = $product->post_title;
 				$variation_name = null;
+                $category = implode( '/', getObjectTerms( 'product_cat', $product_id ) );
 			}
+
 
 			$item = array(
 				'id'       => $content_id,
-				'name'     => $product->post_title,
-				'category' => implode( '/', getObjectTerms( 'product_cat', $product_id ) ),
+				'name'     => $name,
+				'category' => $category,
 				'quantity' => $cart_item['quantity'],
-				'price'    => getWooProductPriceToDisplay( $product_id ),
+				'price'    => $price,
 				'variant'  => $variation_name,
 			);
 
@@ -976,16 +1356,27 @@ class GA extends Settings implements Pixel {
 			$post = get_post( $line_item['product_id'] );
 
 			if ( $line_item['variation_id'] ) {
-				$variation = get_post( $line_item['variation_id'] );
-				$variation_name = $variation->post_title;
+                $variation = wc_get_product( (int) $line_item['variation_id'] );
+                if(is_a($variation, 'WC_Product_Variation')) {
+                    $name = $variation->get_title();
+                    $categories = implode( '/', getObjectTerms( 'product_cat', $variation->get_parent_id() ) );
+                    $variation_name = implode("/", $variation->get_variation_attributes());
+                } else {
+                    $name = $post->post_title;
+                    $variation_name = null;
+                    $categories = implode( '/', getObjectTerms( 'product_cat', $post->ID ) );
+                }
+
 			} else {
+                $name = $post->post_title;
 				$variation_name = null;
+                $categories = implode( '/', getObjectTerms( 'product_cat', $post->ID ) );
 			}
 			
 			$item = array(
 				'id'       => $post->ID,
-				'name'     => $post->post_title,
-				'category' => implode( '/', getObjectTerms( 'product_cat', $post->ID ) ),
+				'name'     => $name,
+				'category' => $categories,
 				'quantity' => $line_item['qty'],
 				'price'    => getWooProductPriceToDisplay( $post->ID ),
 				'variant'  => $variation_name,

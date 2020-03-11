@@ -43,5 +43,16 @@
   "edd_remove_from_cart_enabled": true,
   "edd_add_to_cart_enabled": true,
   "edd_view_content_enabled": true,
-  "edd_view_category_enabled": true
+  "edd_view_category_enabled": true,
+
+  "fdp_content_type" : "product",
+  "fdp_view_content_enabled": false,
+  "fdp_view_category_enabled": false,
+  "fdp_add_to_cart_enabled": false,
+  "fdp_add_to_cart_event_fire_scroll": "50",
+  "fdp_purchase_enabled": false,
+  "fdp_purchase_event_fire" : "scroll_pos",
+  "fdp_purchase_event_fire_scroll": "90",
+  "fdp_purchase_event_fire_css": ""
+
 }

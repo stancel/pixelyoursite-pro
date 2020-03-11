@@ -123,7 +123,8 @@ class EventsManager {
 			'removeFromCartSelector'        => isWooCommerceVersionGte( '3.0.0' )
 			? 'form.woocommerce-cart-form .remove'
 			: '.cart .product-remove .remove',
-            'checkoutProgressEnabled'       => isWooCommerceActive() && is_checkout() && ! is_wc_endpoint_url() && $this->isCheckOutProgressEnable()
+            'checkoutProgressEnabled'       => isWooCommerceActive() && is_checkout() && ! is_wc_endpoint_url() && $this->isCheckOutProgressEnable(),
+            'selectContentEnabled'       => $this->isSelectContentEnable()
 		);
 
 		$options['edd'] = array(
@@ -186,6 +187,8 @@ class EventsManager {
 			add_filter( 'widget_text', 'PixelYourSite\filterContentUrls', 1000 );
 
 		}
+
+        $this->setupFDPEvents();
 
 		if ( isWooCommerceActive() && PYS()->getOption( 'woo_enabled' ) ) {
 			$this->setupWooCommerceEvents();
@@ -267,6 +270,79 @@ class EventsManager {
 
 	}
 
+
+	private function isSelectContentEnable() {
+	    return isWooCommerceActive() &&
+            isEventEnabled( 'woo_select_content_enabled' ) &&
+            (is_tax( 'product_cat' ) || is_product() || is_search() || is_shop() || is_product_tag());
+    }
+
+	private function setupWooSelectContent($type) {
+
+	    foreach ( PYS()->getRegisteredPixels() as $pixel ) {
+            /** @var Pixel|Settings $pixel */
+
+            $eventData = $pixel->getEventData("woo_select_content", $type);
+
+            if (false === $eventData) {
+                continue; // event is disabled or not supported for the pixel
+            }
+
+            ?>
+            <script type="text/javascript">
+                /* <![CDATA[ */
+                window.pysWooSelectContentData = window.pysWooSelectContentData || [];
+            <?php
+                foreach ($eventData as $product_id => $item) {
+
+                    $items = Array();
+                    $items[] = $item;
+                    $params = array(
+                        'event_category'  => 'ecommerce',
+                        'content_type'     => "product",
+                        'items'           => $items,
+                    ); ?>
+
+                        window.pysWooSelectContentData[ <?=$product_id;?> ] = <?= json_encode($params); ?>;
+
+                    <?php
+                }
+            ?>
+                /* ]]> */
+            </script>
+            <?php
+	    }
+    }
+
+    /**
+     * @param FDPEvent $event
+     * @param $triggers
+     */
+
+    private function addFDPDynamicEvent( $event ) {
+
+        foreach ( PYS()->getRegisteredPixels() as $pixel ) {
+            /** @var Pixel|Settings $pixel */
+
+            $eventData = $pixel->getEventData( 'fdp_event', $event );
+            if ( false === $eventData ) {
+                continue;
+            }
+
+            if ( $pixel->getSlug() == 'facebook' ) {
+
+                $this->dynamicEventsParams[ $event->event_name ]['facebook'] = array(
+                    'name'   => $eventData['name'],
+                    'params' => sanitizeParams( $eventData['data'] ),
+                    'hasTimeWindow'    => $event->hasTimeWindow(),
+                    'timeWindow'    => $event->getTimeWindow(),
+                );
+            }
+
+            $this->dynamicEventsTriggers[ $event->trigger_type ][ $event->event_name ][] = $event->trigger_value;
+        }
+    }
+
 	/**
 	 * Add dynamic event for each pixel
 	 *
@@ -335,6 +411,35 @@ class EventsManager {
 
 	}
 
+	private function setupFDPEvents() {
+
+        if(PYS()->getRegisteredPixels()['facebook'] == null ) return;
+
+        $pixel = PYS()->getRegisteredPixels()['facebook'];
+
+        foreach ( $pixel->getFDPEvents() as $event ) {
+
+            if ( 'fdp_view_content' == $event->event_name && is_single() && get_post_type() == 'post') {
+                $this->addStaticEvent( 'fdp_event', $event );
+            }
+
+            if ( 'fdp_view_category' == $event->event_name && is_category() ) {
+                $this->addStaticEvent( 'fdp_event', $event );
+            }
+
+            if ( 'fdp_add_to_cart' == $event->event_name && is_single() && get_post_type() == 'post') {
+
+                $this->addFDPDynamicEvent( $event );
+            }
+
+            if ( 'fdp_purchase' == $event->event_name && is_single() && get_post_type() == 'post' ) {
+
+                $this->addFDPDynamicEvent( $event );
+            }
+        }
+
+    }
+
 	private function setupCustomEvents() {
 
 		foreach ( CustomEventFactory::get( 'active' ) as $event ) {
@@ -372,7 +477,7 @@ class EventsManager {
 
 			if ( 'page_visit' == $event->getTriggerType() ) {
 				
-				$triggers = apply_filters( 'pys_page_url_triggers', $triggers );
+				//$triggers = apply_filters( 'pys_page_url_triggers', $triggers );
 				
 				// match triggers with current page URL
 				if ( ! compareURLs( $triggers ) ) {
@@ -454,20 +559,50 @@ class EventsManager {
 
 		// ViewContent
 	if ( isEventEnabled( 'woo_view_content_enabled' ) && is_product() ) {
-
 		$this->addStaticEvent( 'woo_view_content' );
-		return;
-
 	}
 
 		// ViewCategory
 		//@todo: +7.1.0+ maybe fire on Shop page as well? review GA 'list' param then
-	if ( isEventEnabled( 'woo_view_category_enabled' ) && is_tax( 'product_cat' ) ) {
+	if ( isEventEnabled( 'woo_view_category_enabled' )) {
+	    if( is_tax( 'product_cat' )) {
+            $this->addStaticEvent( 'woo_view_category' );
+        }
 
-		$this->addStaticEvent( 'woo_view_category' );
-		return;
+        if(is_product()) {
+            $this->addStaticEvent( 'woo_view_item_list_single' );
+        }
 
+        if(is_search()) {
+            $this->addStaticEvent( 'woo_view_item_list_search' );
+        }
+
+        if(is_shop() && !is_search()) {
+            $this->addStaticEvent( 'woo_view_item_list_shop' );
+        }
+
+        if(is_product_tag()) {
+            $this->addStaticEvent( 'woo_view_item_list_tag' );
+        }
 	}
+
+	if(isEventEnabled( 'woo_select_content_enabled' ) && !$this->doingAMP) {
+        if( is_tax( 'product_cat' )) {
+            $this->setupWooSelectContent("category");
+        }
+        if(is_product()) {
+            $this->setupWooSelectContent("single");
+        }
+        if(is_search()) {
+            $this->setupWooSelectContent("search");
+        }
+        if(is_shop()&& !is_search()) {
+            $this->setupWooSelectContent("shop");
+        }
+        if(is_product_tag()) {
+            $this->setupWooSelectContent("tag");
+        }
+    }
 
 		// AddToCart on Cart page
 	if ( isEventEnabled( 'woo_add_to_cart_enabled' ) && PYS()->getOption( 'woo_add_to_cart_on_cart_page' )
@@ -635,6 +770,8 @@ if ( isEventEnabled( 'woo_purchase_enabled' ) && is_order_received_page() && iss
 	public function setupWooSingleProductData() {
 		global $product;
 
+        if($product == null) return;
+
 		if ( wooProductIsType( $product, 'external' ) ) {
 			$eventType = 'woo_affiliate_enabled';
 		} else {
@@ -658,6 +795,7 @@ if ( isEventEnabled( 'woo_purchase_enabled' ) && is_order_received_page() && iss
 			foreach ( $product->get_available_variations() as $variation ) {
 
 				$variation = wc_get_product( $variation['variation_id'] );
+                if(!$variation) continue;
 
 				if ( isWooCommerceVersionGte( '2.6' ) ) {
 					$product_ids[] = $variation->get_id();

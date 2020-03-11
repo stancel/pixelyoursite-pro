@@ -912,7 +912,11 @@ if (!String.prototype.trim) {
                 });
 
             },
-
+            setupCommentEvents : function (eventId,triggers) {
+                $('form.comment-form').submit(function () {
+                    Utils.fireDynamicEvent(eventId);
+                });
+            },
             /**
              * Events
              */
@@ -1930,6 +1934,12 @@ if (!String.prototype.trim) {
 
             },
 
+            onWooSelectContent: function (params) {
+                this.fireEvent('select_content', {
+                    params: params
+                });
+            },
+
             onWooRemoveFromCartEvent: function (cart_item_hash) {
 
                 window.pysWooRemoveFromCartData = window.pysWooRemoveFromCartData || [];
@@ -2368,6 +2378,8 @@ if (!String.prototype.trim) {
 
     $(document).ready(function () {
 
+
+
         var Pinterest = Utils.setupPinterestObject();
         var Bing = Utils.setupBingObject();
 
@@ -2534,6 +2546,9 @@ if (!String.prototype.trim) {
 
                     case 'scroll_pos':
                         Utils.setupScrollPosEvents(eventId, triggers);
+                        break;
+                    case 'comment':
+                        Utils.setupCommentEvents(eventId, triggers);
                         break;
                 }
 
@@ -2709,6 +2724,15 @@ if (!String.prototype.trim) {
                 }
             }
 
+
+            // WooCommerce
+            if(options.woo.selectContentEnabled) {
+                $('.product.type-product a.woocommerce-loop-product__link').onFirst('click', function (evt) {
+                    var productId = $(this).parent().find("a.add_to_cart_button").attr("data-product_id");
+                    var param = window.pysWooSelectContentData[productId];
+                    Analytics.onWooSelectContent(param);
+                });
+            }
         }
 
         // setup EDD events
@@ -2964,6 +2988,8 @@ if (!String.prototype.trim) {
         Utils.initYouTubeAPI();
         Utils.initVimeoAPI();
     }
+
+
 
 }(jQuery, pysOptions);
 

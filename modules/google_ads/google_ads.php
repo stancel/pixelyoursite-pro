@@ -552,19 +552,32 @@ class GoogleAds extends Settings implements Pixel {
             return false;
         }
 
-        $product = get_post( $product_id );
+        $product = wc_get_product( $product_id );
         $price = getWooProductPriceToDisplay( $product_id, 1 );
+        $contentId = Helpers\getWooFullItemId( $product_id );
+
+        if ( $product->get_type() == 'variation' ) {
+            $parentId = $product->get_parent_id();
+            $name = $product->get_title();
+            $category = implode( '/', getObjectTerms( 'product_cat', $parentId ) );
+            $variation_name = implode("/", $product->get_variation_attributes());
+        } else {
+            $name = $product->get_name();
+            $category = implode( '/', getObjectTerms( 'product_cat', $product_id ) );
+            $variation_name = null;
+        }
 
         $params = array(
             'event_category'  => 'ecommerce',
             'value' => $price,
             'items'           => array(
                 array(
-                    'id'       => Helpers\getWooFullItemId( $product_id ),
-                    'name'     => $product->post_title,
-                    'category' => implode( '/', getObjectTerms( 'product_cat', $product_id ) ),
+                    'id'       => $contentId,
+                    'name'     => $name,
+                    'category' => $category,
                     'quantity' => 1,
                     'price'    => $price,
+                    'variant'  => $variation_name,
                     'google_business_vertical' => $this->googleBusinessVertical,
                 ),
             ),
@@ -605,13 +618,26 @@ class GoogleAds extends Settings implements Pixel {
         $product = get_post( $product_id );
 
         if ( ! empty( $cart_item['variation_id'] ) ) {
-            $variation = get_post( (int) $cart_item['variation_id'] );
-            $variation_name = $variation->post_title;
+            $variation = wc_get_product( (int) $cart_item['variation_id'] );
+            if(is_a($variation, 'WC_Product_Variation')) {
+                $parentId = $variation->get_parent_id();
+                $name = $variation->get_title();
+                $category = implode( '/', getObjectTerms( 'product_cat', $parentId ) );
+                $variation_name = implode("/", $variation->get_variation_attributes());
+            } else {
+                $name = $product->post_title;
+                $variation_name = null;
+                $category = implode( '/', getObjectTerms( 'product_cat', $product_id ) );
+            }
+
         } else {
+            $name = $product->post_title;
             $variation_name = null;
+            $category = implode( '/', getObjectTerms( 'product_cat', $product_id ) );
         }
 
         $price = getWooProductPriceToDisplay( $product_id, $cart_item['quantity'] );
+
 
         return array(
             'data' => array(
@@ -621,8 +647,8 @@ class GoogleAds extends Settings implements Pixel {
                 'items'           => array(
                     array(
                         'id'       => $content_id,
-                        'name'     => $product->post_title,
-                        'category' => implode( '/', getObjectTerms( 'product_cat', $product_id ) ),
+                        'name'     => $name,
+                        'category' => $category,
                         'quantity' => $cart_item['quantity'],
                         'price'    => $price,
                         'variant'  => $variation_name,
@@ -714,10 +740,22 @@ class GoogleAds extends Settings implements Pixel {
             $product = wc_get_product( $product_id );
 
             if ( $line_item['variation_id'] ) {
-                $variation      = get_post( $line_item['variation_id'] );
-                $variation_name = $variation->post_title;
+                $variation = wc_get_product( (int) $line_item['variation_id'] );
+                if(is_a($variation, 'WC_Product_Variation')) {
+                    $name = $variation->get_title();
+                    $category = implode( '/', getObjectTerms( 'product_cat', $variation->get_parent_id() ) );
+                    $variation_name = implode("/", $variation->get_variation_attributes());
+                } else {
+                    $name = $post->post_title;
+                    $variation_name = null;
+                    $category = implode( '/', getObjectTerms( 'product_cat', $product_id ) );
+                }
+
+
             } else {
+                $name = $post->post_title;
                 $variation_name = null;
+                $category = implode( '/', getObjectTerms( 'product_cat', $product_id ) );
             }
 
             /**
@@ -751,10 +789,12 @@ class GoogleAds extends Settings implements Pixel {
 
             }
 
+
+
             $item = array(
                 'id'       => $content_id,
-                'name'     => $post->post_title,
-                'category' => implode( '/', getObjectTerms( 'product_cat', $product_id ) ),
+                'name'     => $name,
+                'category' => $category,
                 'quantity' => $qty,
                 'price'    => $price,
                 'variant'  => $variation_name,
@@ -852,22 +892,35 @@ class GoogleAds extends Settings implements Pixel {
 
             $product_id = Helpers\getWooCartItemId( $cart_item );
             $content_id = Helpers\getWooFullItemId( $product_id );
-
+            $price = getWooProductPriceToDisplay( $product_id );
             $product = get_post( $product_id );
 
             if ( $cart_item['variation_id'] ) {
-                $variation = get_post( $cart_item['variation_id'] );
-                $variation_name = $variation->post_title;
+                $variation = wc_get_product( (int) $cart_item['variation_id'] );
+                if(is_a($variation, 'WC_Product_Variation')) {
+                    $name = $variation->get_title();
+                    $category = implode( '/', getObjectTerms( 'product_cat', $variation->get_parent_id() ) );
+                    $variation_name = implode("/", $variation->get_variation_attributes());
+                } else {
+                    $name = $product->post_title;
+                    $variation_name = null;
+                    $category = implode( '/', getObjectTerms( 'product_cat', $product_id ) );
+                }
+
             } else {
+                $name = $product->post_title;
                 $variation_name = null;
+                $category = implode( '/', getObjectTerms( 'product_cat', $product_id ) );
             }
+
+
 
             $item = array(
                 'id'       => $content_id,
-                'name'     => $product->post_title,
-                'category' => implode( '/', getObjectTerms( 'product_cat', $product_id ) ),
+                'name'     => $name,
+                'category' => $category,
                 'quantity' => $cart_item['quantity'],
-                'price'    => getWooProductPriceToDisplay( $product_id ),
+                'price'    => $price,
                 'variant'  => $variation_name,
                 'google_business_vertical' => $this->googleBusinessVertical,
             );
@@ -913,16 +966,27 @@ class GoogleAds extends Settings implements Pixel {
             $post = get_post( $product_id );
 
             if ( $line_item['variation_id'] ) {
-                $variation = get_post( $line_item['variation_id'] );
-                $variation_name = $variation->post_title;
+                $variation = wc_get_product( (int) $line_item['variation_id'] );
+                if(is_a($variation, 'WC_Product_Variation')) {
+                    $name = $variation->get_title();
+                    $category = implode( '/', getObjectTerms( 'product_cat', $variation->get_parent_id() ) );
+                    $variation_name = implode("/", $variation->get_variation_attributes());
+                } else {
+                    $name = $post->post_title;
+                    $variation_name = null;
+                    $category = implode( '/', getObjectTerms( 'product_cat', $product_id ) );
+                }
+
             } else {
+                $name = $post->post_title;
                 $variation_name = null;
+                $category = implode( '/', getObjectTerms( 'product_cat', $product_id ) );
             }
 
             $item = array(
                 'id'       => $content_id,
-                'name'     => $post->post_title,
-                'category' => implode( '/', getObjectTerms( 'product_cat', $product_id ) ),
+                'name'     => $name,
+                'category' => $category,
                 'quantity' => $line_item['qty'],
                 'price'    => getWooProductPriceToDisplay( $product_id ),
                 'variant'  => $variation_name,

@@ -1176,20 +1176,7 @@ use PixelYourSite\Ads\Helpers as AdsHelpers;
     </div>
 <?php endif; ?>
 
-<?php if ( GA()->enabled() ) : ?>
-<div class="row mb-1">
-    <div class="col">
-        <?php GA()->render_switcher_input( 'woo_view_category_enabled' ); ?>
-        <h4 class="switcher-label">Enable the view_item_list event on Google Analytics</h4>
-    </div>
-</div>
-<div class="row mb-2">
-    <div class="col col-offset-left">
-        <?php GA()->render_checkbox_input( 'woo_view_category_non_interactive',
-        'Non-interactive event' ); ?>
-    </div>
-</div>
-<?php endif; ?>
+
 
 <?php if ( Ads()->enabled() ) : ?>
 <div class="row">
@@ -1222,6 +1209,34 @@ use PixelYourSite\Ads\Helpers as AdsHelpers;
 <?php endif; ?>
 
 </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        Track product list performance on Google Analytics<?php cardCollapseBtn(); ?>
+    </div>
+    <div class="card-body">
+        <?php if ( GA()->enabled() ) : ?>
+            <div class="row mb-1">
+                <div class="col">
+                    <?php GA()->render_switcher_input( 'woo_view_category_enabled' ); ?>
+                    <h4 class="switcher-label">Enable the view_item_list event on Google Analytics(categories, related products, search, shortcodes)</h4>
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col col-offset-left">
+                    <?php GA()->render_checkbox_input( 'woo_view_category_non_interactive',
+                        'Non-interactive event' ); ?>
+                </div>
+            </div>
+            <div class="row mb-1">
+                <div class="col">
+                    <?php GA()->render_switcher_input( 'woo_select_content_enabled' ); ?>
+                    <h4 class="switcher-label">Enable the select_content event on Google Analytics(when a product is clicked on categories, related products, search, shortcodes)</h4>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
 </div>
 
 <h2 class="section-title">Extra E-Commerce events</h2>

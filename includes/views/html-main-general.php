@@ -91,8 +91,93 @@ if ( ! defined( 'ABSPATH' ) ) {
         
     </div>
 </div>
+<div class="card">
+    <div class="card-header">
+        Dynamic Ads for Blog Setup <?php cardCollapseBtn(); ?>
+    </div>
+    <div class="card-body">
+        <div class="row mt-3">
+            <div class="col-11">
+                This setup will help you to run Facebook Dynamic Product Ads for your blog content.
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col">
+                <a href="https://www.pixelyoursite.com/facebook-dynamic-product-ads-for-wordpress" target="_blank">Click here to learn how to do it</a>
+            </div>
+        </div>
+        <?php if ( Facebook()->enabled() ) : ?>
 
+            <div class="row mt-3">
+                <div class="col">
+                    <label>Content_type</label><?php
+                    $options = array(
+                        'product'    => 'Product',
+                        ''           => 'Empty'
+                    );
+                    Facebook()->render_select_input( 'fdp_content_type',$options ); ?>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col">
+                    <?php Facebook()->render_switcher_input( 'fdp_view_content_enabled' ); ?>
+                    <h4 class="switcher-label">Enable the ViewContent on every blog page</h4>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col">
+                    <?php Facebook()->render_switcher_input( 'fdp_view_category_enabled' ); ?>
+                    <h4 class="switcher-label">Enable the ViewCategory on every blog categories page</h4>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-11">
+                    <?php Facebook()->render_switcher_input( 'fdp_add_to_cart_enabled' ); ?>
+                    <h4 class="switcher-label">Enable the AddToCart event on every blog page</h4>
+                </div>
+
+                <div class="col-11 form-inline col-offset-left">
+                    <label>Fire the AddToCart when scroll to</label>
+                    <?php Facebook()->render_number_input( 'fdp_add_to_cart_event_fire_scroll',50 ); ?>
+                    <label>%</label>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-11">
+                    <?php Facebook()->render_switcher_input( 'fdp_purchase_enabled' ); ?>
+                    <h4 class="switcher-label">Enable the Purchase event on every blog page</h4>
+                </div>
+
+                <div class="col-11 form-inline col-offset-left">
+                    <label>Fire the Purchase event</label>
+
+                    <?php
+                    $options = array(
+                        'scroll_pos'    => 'Page Scroll',
+                        'comment'     => 'User commented',
+                        'css_click'     => 'Click on CSS selector',
+                        //Default event fires
+                    );
+                    Facebook()->render_select_input( 'fdp_purchase_event_fire',$options ); ?>
+                    <span id="fdp_purchase_event_fire_scroll_block">
+                        <?php Facebook()->render_number_input( 'fdp_purchase_event_fire_scroll',50 ); ?> <span>%</span>
+                    </span>
+
+                    <?php Facebook()->render_text_input( 'fdp_purchase_event_fire_css',"CSS selector"); ?>
+                </div>
+            </div>
+            <div class="row mt-5">
+                <div class="col">
+                    <strong>You need to upload your blog posts into a Facebook Product Catalog.</strong> You can do this with our dedicated plugin:
+                    <a href="https://www.pixelyoursite.com/wordpress-feed-facebook-dpa" target="_blank">Click Here</a>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
 <h2 class="section-title">Global Events</h2>
+
 
 <!-- GeneralEvent -->
 <div class="card">
