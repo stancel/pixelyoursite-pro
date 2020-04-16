@@ -7,4 +7,5 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'URL\\' => array($vendorDir . '/glenscott/url-normalizer/src/URL'),
+    'FacebookAds\\' => array($vendorDir . '/facebook/php-business-sdk/src/FacebookAds'),
 );

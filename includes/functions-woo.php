@@ -235,11 +235,81 @@ function getWooOrderTotal( $order ) {
 
 }
 
-function getWooEventValue( $valueOption, $amount, $global, $percent ) {
+function getWooEventValue( $valueOption, $amount, $global, $percent, $product_id = null ) {
 
 	switch ( $valueOption ) {
 		case 'global':
 			$value = (float) $global;
+			break;
+
+		case 'cog':
+			$cog = getAvailableProductCog($product_id);
+			if ($cog['val']){
+				if ($cog['type'] == 'fix') {
+					$value = round((float) $amount - (float) $cog['val'], 2);
+				} else {
+					$value = round((float) $amount - ( (float) $amount * (float) $cog['val'] / 100 ), 2);
+				}
+			} else {
+				$value = (float) $amount;
+			}
+			if ( !isPixelCogActive() ) $value = (float) $amount;
+			break;
+
+		case 'percent':
+			$percents = (float) $percent;
+			$percents = str_replace( '%', null, $percents );
+			$percents = (float) $percents / 100;
+			$value    = (float) $amount * $percents;
+			break;
+
+		default:    // "price" option
+			$value = (float) $amount;
+	}
+
+	return $value;
+
+}
+
+function getWooEventValueOrder( $valueOption, $amount, $global, $order_id, $content_ids, $percent = 100 ) {
+
+	switch ( $valueOption ) {
+		case 'global':
+			$value = (float) $global;
+			break;
+
+		case 'cog':
+			$cog_value = getAvailableProductCogOrder($order_id);
+			($cog_value !== '') ? $value = (float) round($cog_value, 2) : $value = (float) $amount;
+			if ( !isPixelCogActive() ) $value = (float) $amount;
+			break;
+
+		case 'percent':
+			$percents = (float) $percent;
+			$percents = str_replace( '%', null, $percents );
+			$percents = (float) $percents / 100;
+			$value    = (float) $amount * $percents;
+			break;
+
+		default:    // "price" option
+			$value = (float) $amount;
+	}
+
+	return $value;
+
+}
+
+function getWooEventValueCart( $valueOption, $amount, $global, $percent = 100 ) {
+
+	switch ( $valueOption ) {
+		case 'global':
+			$value = (float) $global;
+			break;
+
+		case 'cog':
+			$cog_value = getAvailableProductCogCart($amount);
+			($cog_value !== '') ? $value = (float) round($cog_value, 2) : $value = (float) $amount;
+			if ( !isPixelCogActive() ) $value = (float) $amount;
 			break;
 
 		case 'percent':

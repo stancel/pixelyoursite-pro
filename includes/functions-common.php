@@ -18,6 +18,21 @@ function isPysFreeActive() {
 
 }
 
+/**
+ * Check if Pixel Cost of goods plugin installed and activated.
+ *
+ * @return bool
+ */
+function isPixelCogActive() {
+
+	if ( ! function_exists( 'is_plugin_active' ) ) {
+		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+	}
+
+	return is_plugin_active( 'pixel-cost-of-goods/pixel-cost-of-goods.php' );
+
+}
+
 function isPinterestActive( $checkCompatibility = true ) {
 	
 	if ( ! function_exists( 'is_plugin_active' ) ) {
@@ -216,6 +231,194 @@ function getAvailableUserRoles() {
 	
 	return $user_roles;
 	
+}
+
+function getAvailableProductCog($product_id) {
+
+	$cog_product_val = get_post_meta( $product_id, '_pixel_cost_of_goods_cost_val', true );
+	$cog_term_val = get_product_cost_by_cat( $product_id );
+
+	if ($cog_product_val) {
+		$cog = array(
+			'type' => get_post_meta( $product_id, '_pixel_cost_of_goods_cost_type', true ),
+			'val' => $cog_product_val
+		);
+	} elseif ($cog_term_val) {
+		$cog = array(
+			'type' => get_product_type_by_cat( $product_id ),
+			'val' => $cog_term_val
+		);
+	} else {
+		$cog = array(
+			'type' => get_option( '_pixel_cost_of_goods_cost_type'),
+			'val' => get_option( '_pixel_cost_of_goods_cost_val')
+		);
+	}
+
+	return $cog;
+
+}
+
+function getAvailableProductCogOrder($order_id) {
+	$order = wc_get_order( $order_id );
+	$orderData = $order->get_data();
+	$order_shipping_total = $orderData['shipping_total'];
+	$order_total = $order->get_total();
+	$cost = 0;
+	$notice = '';
+	$custom_total = 0;
+	$cat_isset = 0;
+	foreach ( $order->get_items() as $item_id => $item ) {
+		$product_id = ( isset( $item['variation_id'] ) && 0 != $item['variation_id'] ? $item['variation_id'] : $item['product_id'] );
+		$cost_type = get_post_meta( $product_id, '_pixel_cost_of_goods_cost_type', true );
+		$product_cost = get_post_meta( $product_id, '_pixel_cost_of_goods_cost_val', true );
+		$price = get_post_meta($product_id, '_regular_price', true);
+		$qlt = $item['quantity'];
+		if ($product_cost) {
+			$cost = ($cost_type == 'percent') ? $cost + ($price * ($product_cost / 100) * $qlt) : $cost + ($product_cost * $qlt);
+			$custom_total = $custom_total + ($price * $qlt);
+		} else {
+			$product_cost = get_product_cost_by_cat( $product_id );
+			$cost_type = get_product_type_by_cat( $product_id );
+			if ($product_cost) {
+				$cost = ($cost_type == 'percent') ? $cost + ($price * ($product_cost / 100) * $qlt) : $cost + ($product_cost * $qlt);
+				$custom_total = $custom_total + ($price * $qlt);
+				$notice = "Category Cost of Goods was used for some products.";
+				$cat_isset = 1;
+			} else {
+				$product_cost = get_option( '_pixel_cost_of_goods_cost_val');
+				$cost_type = get_option( '_pixel_cost_of_goods_cost_type' );
+				if ($product_cost) {
+					$cost = ($cost_type == 'percent') ? (float) $cost + ((float) $price * ((float) $product_cost / 100) * $qlt) : (float) $cost + ((float) $product_cost * $qlt);
+					$custom_total = $custom_total + ($price * $qlt);
+					if ($cat_isset == 1) {
+						$notice = "Global and Category Cost of Goods was used for some products.";
+					} else {
+						$notice = "Global Cost of Goods was used for some products.";
+					}
+				} else {
+					$notice = "Some products don't have Cost of Goods.";
+				}
+			}
+		}
+	}
+	if (($order_total - $cost - $order_shipping_total) > 0) {
+		$profit = $order_total - $cost - $order_shipping_total;
+	} else {
+		$profit = '';
+	}
+	if ('' !== $notice) {
+		if (($custom_total - $cost) > 0) {
+			$profit = $custom_total - $cost;
+		} else {
+			$profit = '';
+		}
+	}
+
+	return $profit;
+
+}
+
+function getAvailableProductCogCart($amount) {
+	$cart_total = $amount;
+	$cost = 0;
+	$notice = '';
+	$custom_total = 0;
+	$cat_isset = 0;
+	foreach ( WC()->cart->cart_contents as $cart_item_key => $item ) {
+		$product_id = ( isset( $item['variation_id'] ) && 0 != $item['variation_id'] ? $item['variation_id'] : $item['product_id'] );
+		$cost_type = get_post_meta( $product_id, '_pixel_cost_of_goods_cost_type', true );
+		$product_cost = get_post_meta( $product_id, '_pixel_cost_of_goods_cost_val', true );
+		$price = get_post_meta($product_id, '_regular_price', true);
+		$qlt = $item['quantity'];
+		if ($product_cost) {
+			$cost = ($cost_type == 'percent') ? $cost + ($price * ($product_cost / 100) * $qlt) : $cost + ($product_cost * $qlt);
+			$custom_total = $custom_total + ($price * $qlt);
+		} else {
+			$product_cost = get_product_cost_by_cat( $product_id );
+			$cost_type = get_product_type_by_cat( $product_id );
+			if ($product_cost) {
+				$cost = ($cost_type == 'percent') ? $cost + ($price * ($product_cost / 100) * $qlt) : $cost + ($product_cost * $qlt);
+				$custom_total = $custom_total + ($price * $qlt);
+				$notice = "Category Cost of Goods was used for some products.";
+				$cat_isset = 1;
+			} else {
+				$product_cost = get_option( '_pixel_cost_of_goods_cost_val');
+				$cost_type = get_option( '_pixel_cost_of_goods_cost_type' );
+				if ($product_cost) {
+					$cost = ($cost_type == 'percent') ? $cost + ((float) $price * ((float) $product_cost / 100) * $qlt) : (float) $cost + ((float) $product_cost * $qlt);
+					$custom_total = $custom_total + ($price * $qlt);
+					if ($cat_isset == 1) {
+						$notice = "Global and Category Cost of Goods was used for some products.";
+					} else {
+						$notice = "Global Cost of Goods was used for some products.";
+					}
+				} else {
+					$notice = "Some products don't have Cost of Goods.";
+				}
+			}
+		}
+	}
+	if (($cart_total - $cost) > 0) {
+		$profit = $cart_total - $cost;
+	} else {
+		$profit = '';
+	}
+	if ('' !== $notice) {
+		if (($custom_total - $cost) > 0) {
+			$profit = $custom_total - $cost;
+		} else {
+			$profit = '';
+		}
+	}
+
+	return $profit;
+
+}
+
+/**
+ * get_product_type_by_cat.
+ *
+ * @version 1.0.0
+ * @since   1.0.0
+ */
+function get_product_type_by_cat( $product_id ) {
+	$term_list = wp_get_post_terms($product_id,'product_cat',array('fields'=>'ids'));
+	$cost = array();
+	foreach ($term_list as $term_id) {
+		$cost[$term_id] = array(
+			get_term_meta( $term_id, '_pixel_cost_of_goods_cost_val', true ),
+			get_term_meta( $term_id, '_pixel_cost_of_goods_cost_type', true )
+		);
+	}
+	if ( empty( $cost ) ) {
+		return '';
+	} else {
+		asort( $cost );
+		$max = end( $cost );
+		return $max[1];
+	}
+}
+
+/**
+ * get_product_cost_by_cat.
+ *
+ * @version 1.0.0
+ * @since   1.0.0
+ */
+function get_product_cost_by_cat( $product_id ) {
+	$term_list = wp_get_post_terms($product_id,'product_cat',array('fields'=>'ids'));
+	$cost = array();
+	foreach ($term_list as $term_id) {
+		$cost[$term_id] = get_term_meta( $term_id, '_pixel_cost_of_goods_cost_val', true );
+	}
+	if ( empty( $cost ) ) {
+		return '';
+	} else {
+		asort( $cost );
+		$max = end( $cost );
+		return $max;
+	}
 }
 
 function isDisabledForCurrentRole() {

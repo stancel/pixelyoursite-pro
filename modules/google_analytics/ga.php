@@ -835,6 +835,7 @@ class GA extends Settings implements Pixel {
 		}
         $contentId = Helpers\getWooProductContentId($product_id);
 		$product = wc_get_product( $product_id );
+        if(!$product) return false;
 		$price = getWooProductPriceToDisplay( $product_id, 1 );
 
         if ( $product->get_type() == 'variation' ) {
@@ -1094,7 +1095,7 @@ class GA extends Settings implements Pixel {
 
 			$post    = get_post( $product_id );
 			$product = wc_get_product( $product_id);
-
+            if(!$product) continue;
 
 			if ( $line_item['variation_id'] ) {
 
@@ -1299,8 +1300,8 @@ class GA extends Settings implements Pixel {
 			$total_value += $item['price'];
 
 		}
-
-		if ( $coupons =  WC()->cart->get_applied_coupons() ) {
+        $coupons =  WC()->cart->get_applied_coupons();
+		if ( count($coupons) > 0 ) {
 			$coupon = $coupons[0];
 		} else {
 			$coupon = null;

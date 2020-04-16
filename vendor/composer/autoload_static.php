@@ -11,6 +11,10 @@ class ComposerStaticInit4fde610176fd2c6be82043c150aa0f5a
         array (
             'URL\\' => 4,
         ),
+        'F' => 
+        array (
+            'FacebookAds\\' => 12,
+        ),
     );
 
     public static $prefixDirsPsr4 = array (
@@ -18,6 +22,14 @@ class ComposerStaticInit4fde610176fd2c6be82043c150aa0f5a
         array (
             0 => __DIR__ . '/..' . '/glenscott/url-normalizer/src/URL',
         ),
+        'FacebookAds\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/facebook/php-business-sdk/src/FacebookAds',
+        ),
+    );
+
+    public static $classMap = array (
+        'WP_Async_Task' => __DIR__ . '/..' . '/techcrunch/wp-async-task/wp-async-task.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
@@ -25,6 +37,7 @@ class ComposerStaticInit4fde610176fd2c6be82043c150aa0f5a
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInit4fde610176fd2c6be82043c150aa0f5a::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInit4fde610176fd2c6be82043c150aa0f5a::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit4fde610176fd2c6be82043c150aa0f5a::$classMap;
 
         }, null, ClassLoader::class);
     }

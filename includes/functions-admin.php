@@ -139,7 +139,6 @@ function manageAdminPermissions() {
         }
         
     }
-    
 }
 
 function renderPopoverButton( $popover_id ) {
@@ -151,6 +150,13 @@ function renderPopoverButton( $popover_id ) {
     </button>
     
     <?php
+}
+
+function renderCogBadge( $label = "You need this plugin" ) {
+
+	$url = 'https://www.pixelyoursite.com/woocommerce-cost-of-goods';
+
+	echo '&nbsp;<a href="' . esc_url( $url ) . '" target="_blank" class="badge badge-pill badge-pro">'.$label.' <i class="fa fa-external-link" aria-hidden="true"></i></a>';
 }
 
 function renderExternalHelpIcon( $url ) {

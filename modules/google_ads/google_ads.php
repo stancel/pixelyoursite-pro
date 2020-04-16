@@ -553,6 +553,7 @@ class GoogleAds extends Settings implements Pixel {
         }
 
         $product = wc_get_product( $product_id );
+        if(!$product) return false;
         $price = getWooProductPriceToDisplay( $product_id, 1 );
         $contentId = Helpers\getWooFullItemId( $product_id );
 
@@ -738,7 +739,7 @@ class GoogleAds extends Settings implements Pixel {
 
             $post    = get_post( $product_id );
             $product = wc_get_product( $product_id );
-
+            if(!$product) continue;
             if ( $line_item['variation_id'] ) {
                 $variation = wc_get_product( (int) $line_item['variation_id'] );
                 if(is_a($variation, 'WC_Product_Variation')) {
@@ -929,8 +930,8 @@ class GoogleAds extends Settings implements Pixel {
             $total_value += $item['price'];
 
         }
-
-        if ( $coupons =  WC()->cart->get_applied_coupons() ) {
+        $coupons =  WC()->cart->get_applied_coupons();
+        if ( count($coupons) > 0 ) {
             $coupon = $coupons[0];
         } else {
             $coupon = null;

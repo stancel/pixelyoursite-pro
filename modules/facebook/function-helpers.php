@@ -307,7 +307,7 @@ function getWooSingleAddToCartParams( $product_id, $qty = 1, $is_external = fals
 		$global_value   = PixelYourSite\PYS()->getOption( $value_global_option, 0 );
 		$percents_value = PixelYourSite\PYS()->getOption( $value_percent_option, 100 );
 
-		$params['value']    = PixelYourSite\getWooEventValue( $value_option, $amount, $global_value, $percents_value );
+		$params['value']    = PixelYourSite\getWooEventValue( $value_option, $amount, $global_value, $percents_value, $product_id );
 		$params['currency'] = get_woocommerce_currency();
 
 	}
@@ -434,13 +434,29 @@ function getWooCartParams( $context = 'cart' ) {
 		$global_value   = PixelYourSite\PYS()->getOption( $value_global_option, 0 );
 		$percents_value = PixelYourSite\PYS()->getOption( $value_percent_option, 100 );
 
-		$params['value']    = PixelYourSite\getWooEventValue( $value_option, $amount, $global_value, $percents_value );
+		$params['value']    = PixelYourSite\getWooEventValueCart( $value_option, $amount, $global_value, $percents_value );
 		$params['currency'] = get_woocommerce_currency();
 
 	}
 
 	return $params;
 
+}
+
+function getCompleteRegistrationOrderParams() {
+    $params = array();
+    $order_key = sanitize_key( $_REQUEST['key']);
+    $order_id = (int) wc_get_order_id_by_order_key( $order_key );
+    $order = new \WC_Order( $order_id );
+
+    $amount = $order->get_subtotal();
+    $value_option   = PixelYourSite\Facebook()->getOption( 'woo_complete_registration_custom_value' );
+    $global_value   = PixelYourSite\Facebook()->getOption( 'woo_complete_registration_global_value', 0 );
+    $percents_value = PixelYourSite\Facebook()->getOption( 'woo_complete_registration_percent_value', 100 );
+
+    $params['value'] = PixelYourSite\getWooEventValueOrder( $value_option, $amount, $global_value, $order_id, "", $percents_value );
+    $params['currency'] = get_woocommerce_currency();
+    return $params;
 }
 
 function getWooPurchaseParams( $context ) {
@@ -519,7 +535,7 @@ function getWooPurchaseParams( $context ) {
 		$global_value   = PixelYourSite\PYS()->getOption( 'woo_purchase_value_global', 0 );
 		$percents_value = PixelYourSite\PYS()->getOption( 'woo_purchase_value_percent', 100 );
 
-		$params['value'] = PixelYourSite\getWooEventValue( $value_option, $amount, $global_value, $percents_value );
+		$params['value'] = PixelYourSite\getWooEventValueOrder( $value_option, $amount, $global_value, $order_id, $content_ids, $percents_value );
 		$params['currency'] = get_woocommerce_currency();
 
 	}
@@ -562,7 +578,8 @@ function getWooPurchaseParams( $context ) {
 
 	}
 
-	$params['transaction_id'] = $order_id;
+	//$params['transaction_id'] = $order_id;
+	$params['event_id'] = $order_id;
 
 	$params['total'] = (float) $order->get_total( 'edit' );
 	$params['tax'] = (float) $order->get_total_tax( 'edit' );
@@ -575,7 +592,7 @@ function getWooPurchaseParams( $context ) {
 
 	$customer_params = PixelYourSite\PYS()->getEventsManager()->getWooCustomerTotals();
 
-	$params['lifetime_value'] = $customer_params['ltv'];
+	$params['predicted_ltv'] = $customer_params['ltv'];
 	$params['average_order'] = $customer_params['avg_order_value'];
 	$params['transactions_count'] = $customer_params['orders_count'];
 

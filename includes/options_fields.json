@@ -101,5 +101,10 @@
   "edd_view_content_value_enabled": "checkbox",
   "edd_view_content_value_option": "radio",
   "edd_view_content_value_percent": "number",
-  "edd_view_content_value_global": "number"
+  "edd_view_content_value_global": "number",
+
+  "woo_purchase_value_cog": "radio",
+  "woo_content_value_cog": "radio",
+  "woo_add_to_cart_value_cog": "radio",
+  "woo_initiate_checkout_value_cog": "radio"
 }

@@ -1221,7 +1221,7 @@ if (!String.prototype.trim) {
                         }
 
                         if (Cookiebot.consent[options.gdpr.cookiebot_bing_consent_category]) {
-                            bing.loadPixel();
+                            Bing.loadPixel();
                         }
 
                     };
@@ -1336,6 +1336,26 @@ if (!String.prototype.trim) {
             if (options.debug) {
                 console.log('[Facebook] ' + name, params);
             }
+            var isApiDisabled = options.gdpr.all_disabled_by_api ||
+                options.gdpr.facebook_disabled_by_api ||
+                options.gdpr.cookiebot_integration_enabled ||
+                options.gdpr.ginger_integration_enabled ||
+                options.gdpr.cookie_notice_integration_enabled ||
+                options.gdpr.cookie_law_info_integration_enabled;
+            if("Purchase" === name && isApiDisabled){
+                var json = {
+                    action: 'pys_api_event',
+                    pixel: 'facebook',
+                    event: name,
+                    data:data
+                };
+                jQuery.ajax( {
+                    type: 'POST',
+                    url: options.ajaxUrl,
+                    data: json,
+                    success: function(){},
+                });
+            }
 
             fbq(actionType, name, params);
 
@@ -1389,8 +1409,12 @@ if (!String.prototype.trim) {
                     if (options.facebook.removeMetadata) {
                         fbq('set', 'autoConfig', false, pixelId);
                     }
+                    if(options.facebook.advancedMatching.length === 0) {
+                        fbq('init', pixelId);
+                    } else {
+                        fbq('init', pixelId, options.facebook.advancedMatching);
+                    }
 
-                    fbq('init', pixelId, options.facebook.advancedMatching);
 
                 });
 

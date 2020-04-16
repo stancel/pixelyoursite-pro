@@ -6,4 +6,5 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'WP_Async_Task' => $vendorDir . '/techcrunch/wp-async-task/wp-async-task.php',
 );

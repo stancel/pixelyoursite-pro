@@ -702,6 +702,13 @@ use PixelYourSite\Ads\Helpers as AdsHelpers;
                 <div class="custom-controls-stacked">
                   <?php PYS()->render_radio_input( 'woo_purchase_value_option', 'price',
                   'Products price (subtotal)' ); ?>
+	                <?php  if ( !isPixelCogActive() ) { ?>
+		                <?php PYS()->render_radio_input( 'woo_purchase_value_option', 'cog',
+			                'Price minus Cost of Goods', true, true ); ?>
+	                <?php } else { ?>
+		                <?php PYS()->render_radio_input( 'woo_purchase_value_option', 'cog',
+			                'Price minus Cost of Goods', false ); ?>
+	                <?php } ?>
                   <?php PYS()->render_radio_input( 'woo_purchase_value_option', 'percent',
                   'Percent of products value (subtotal)' ); ?>
                   <div class="form-inline">
@@ -874,6 +881,13 @@ use PixelYourSite\Ads\Helpers as AdsHelpers;
                 <div class="custom-controls-stacked">
                   <?php PYS()->render_radio_input( 'woo_initiate_checkout_value_option', 'price',
                   'Products price (subtotal)' ); ?>
+	                <?php  if ( !isPixelCogActive() ) { ?>
+		                <?php PYS()->render_radio_input( 'woo_initiate_checkout_value_option', 'cog',
+			                'Price minus Cost of Goods', true, true ); ?>
+	                <?php } else { ?>
+		                <?php PYS()->render_radio_input( 'woo_initiate_checkout_value_option', 'cog',
+			                'Price minus Cost of Goods', false ); ?>
+	                <?php } ?>
                   <?php PYS()->render_radio_input( 'woo_initiate_checkout_value_option', 'percent',
                   'Percent of products value (subtotal)' ); ?>
                   <div class="form-inline">
@@ -1007,7 +1021,14 @@ use PixelYourSite\Ads\Helpers as AdsHelpers;
                 <label class="label-inline">Facebook and Pinterest value parameter settings:</label>
                 <div class="custom-controls-stacked">
                   <?php PYS()->render_radio_input( 'woo_add_to_cart_value_option', 'price', 'Products price (subtotal)' ); ?>
-                  <?php PYS()->render_radio_input( 'woo_add_to_cart_value_option', 'percent',
+	                <?php  if ( !isPixelCogActive() ) { ?>
+		                <?php PYS()->render_radio_input( 'woo_add_to_cart_value_option', 'cog',
+			                'Price minus Cost of Goods', true, true ); ?>
+	                <?php } else { ?>
+		                <?php PYS()->render_radio_input( 'woo_add_to_cart_value_option', 'cog',
+			                'Price minus Cost of Goods', false ); ?>
+	                <?php } ?>
+					<?php PYS()->render_radio_input( 'woo_add_to_cart_value_option', 'percent',
                   'Percent of products value (subtotal)' ); ?>
                   <div class="form-inline">
                    <?php PYS()->render_number_input( 'woo_add_to_cart_value_percent' ); ?>
@@ -1109,7 +1130,14 @@ use PixelYourSite\Ads\Helpers as AdsHelpers;
                 <label class="label-inline">Facebook and Pinterest value parameter settings:</label>
                 <div class="custom-controls-stacked">
                   <?php PYS()->render_radio_input( 'woo_view_content_value_option', 'price', 'Product price' ); ?>
-                  <?php PYS()->render_radio_input( 'woo_view_content_value_option', 'percent', 'Percent of product price' ); ?>
+	                <?php  if ( !isPixelCogActive() ) { ?>
+		                <?php PYS()->render_radio_input( 'woo_view_content_value_option', 'cog',
+			                'Price minus Cost of Goods', true, true ); ?>
+	                <?php } else { ?>
+		                <?php PYS()->render_radio_input( 'woo_view_content_value_option', 'cog',
+			                'Price minus Cost of Goods', false ); ?>
+	                <?php } ?>
+					<?php PYS()->render_radio_input( 'woo_view_content_value_option', 'percent', 'Percent of product price' ); ?>
                   <div class="form-inline">
                    <?php PYS()->render_number_input( 'woo_view_content_value_percent' ); ?>
                </div>
@@ -1233,6 +1261,55 @@ use PixelYourSite\Ads\Helpers as AdsHelpers;
                 <div class="col">
                     <?php GA()->render_switcher_input( 'woo_select_content_enabled' ); ?>
                     <h4 class="switcher-label">Enable the select_content event on Google Analytics(when a product is clicked on categories, related products, search, shortcodes)</h4>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        CompleteRegistration for the Facebook Pixel<?php cardCollapseBtn(); ?>
+    </div>
+    <div class="card-body">
+        <?php if ( Facebook()->enabled() ) : ?>
+            <div class="row mb-1">
+                <div class="col">
+                    <?php Facebook()->render_checkbox_input( 'woo_complete_registration_fire_every_time',
+                        "Fire this event every time a transaction takes place"); ?>
+                </div>
+            </div>
+            <div class="row mb-1">
+                <div class="col col-offset-left">
+                    <?php Facebook()->render_switcher_input( 'woo_complete_registration_use_custom_value'); ?>
+                    <h4 class="switcher-label">Event value on Facebook</h4>
+                    <div class="row mt-2">
+                        <div class="col col-offset-left">
+                            <div class="collapse-inner pt-0">
+                        <div class="custom-controls-stacked">
+                            <?php Facebook()->render_radio_input("woo_complete_registration_custom_value","price",
+                                "Products price (subtotal)") ?>
+                            <?php  if ( !isPixelCogActive() ) { ?>
+                                <?php Facebook()->render_radio_input( 'woo_complete_registration_custom_value', 'cog',
+                                    'Price minus Cost of Goods', true, true ); ?>
+                            <?php } else { ?>
+                                <?php Facebook()->render_radio_input( 'woo_complete_registration_custom_value', 'cog',
+                                    'Price minus Cost of Goods', false ); ?>
+                            <?php } ?>
+                            <?php Facebook()->render_radio_input("woo_complete_registration_custom_value","percent",
+                                "Percent of product value (subtotal)") ?>
+                            <div class="form-inline">
+                                <?php Facebook()->render_number_input( 'woo_complete_registration_percent_value' ); ?>
+                            </div>
+                            <?php Facebook()->render_radio_input("woo_complete_registration_custom_value","global",
+                                "Use global value") ?>
+                            <div class="form-inline">
+                                <?php Facebook()->render_number_input( 'woo_complete_registration_global_value' ); ?>
+                            </div>
+                        </div>
+                    </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         <?php endif; ?>

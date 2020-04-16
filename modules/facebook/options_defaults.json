@@ -53,6 +53,16 @@
   "fdp_purchase_enabled": false,
   "fdp_purchase_event_fire" : "scroll_pos",
   "fdp_purchase_event_fire_scroll": "90",
-  "fdp_purchase_event_fire_css": ""
+  "fdp_purchase_event_fire_css": "",
 
+  "use_server_api": false,
+  "server_access_api_token": "",
+  "test_api_event_code": "",
+
+  "woo_complete_registration_fire_every_time": false,
+  "woo_complete_registration_use_custom_value": true,
+  "woo_complete_registration_custom_value": "price",
+  "woo_complete_registration_percent_value": "",
+  "woo_complete_registration_global_value": "",
+  "woo_complete_registration_custom_value_old": ""
 }

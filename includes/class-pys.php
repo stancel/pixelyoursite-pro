@@ -92,6 +92,14 @@ final class PYS extends Settings implements Plugin {
 	
 	    add_action( 'wp_ajax_pys_get_gdpr_filters_values', array( $this, 'ajaxGetGdprFiltersValues' ) );
 	    add_action( 'wp_ajax_nopriv_pys_get_gdpr_filters_values', array( $this, 'ajaxGetGdprFiltersValues' ) );
+
+        add_action( 'wp_ajax_pys_api_event','PixelYourSite\EventsManager::sendApiEvent');
+        add_action( 'wp_ajax_nopriv_pys_api_event', 'PixelYourSite\EventsManager::sendApiEvent');
+
+        /*
+         * Restore settings after COG plugin
+         * */
+        add_action( 'deactivate_pixel-cost-of-goods/pixel-cost-of-goods.php',array($this,"restoreSettingsAfterCog"));
     }
 
     public function init() {
@@ -296,8 +304,8 @@ final class PYS extends Settings implements Plugin {
 
         if ( in_array( getCurrentAdminPage(), $this->adminPagesSlugs ) ) {
 	
-	        wp_register_style( 'select2', PYS_URL . '/dist/styles/select2.min.css' );
-	        wp_register_script( 'select2', PYS_URL . '/dist/scripts/select2.min.js',array( 'jquery' ) );
+	        wp_register_style( 'select2_css', PYS_URL . '/dist/styles/select2.min.css' );
+	        wp_register_script( 'select2_js', PYS_URL . '/dist/scripts/select2.min.js',array( 'jquery' ) );
 
             wp_deregister_script( 'jquery' );
             wp_enqueue_script( 'jquery', '//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js' );
@@ -305,8 +313,8 @@ final class PYS extends Settings implements Plugin {
 	        wp_enqueue_script( 'popper', PYS_URL . '/dist/scripts/popper.min.js', 'jquery' );
 	        wp_enqueue_script( 'bootstrap', PYS_URL . '/dist/scripts/bootstrap.min.js', 'jquery','popper' );
 	        
-            wp_enqueue_style( 'pys', PYS_URL . '/dist/styles/admin.css', array( 'select2' ), PYS_VERSION );
-            wp_enqueue_script( 'pys', PYS_URL . '/dist/scripts/admin.js', array( 'jquery', 'select2', 'popper',
+            wp_enqueue_style( 'pys_css', PYS_URL . '/dist/styles/admin.css', array( 'select2_css' ), PYS_VERSION );
+            wp_enqueue_script( 'pys_js', PYS_URL . '/dist/scripts/admin.js', array( 'jquery', 'select2_js', 'popper',
                                                                                  'bootstrap' ), PYS_VERSION );
 
         }
@@ -559,6 +567,21 @@ final class PYS extends Settings implements Plugin {
             // allow 3rd party plugins to by-pass option value
             $core_options['gdpr_ajax_enabled'] = apply_filters( 'pys_gdpr_ajax_enabled', $gdpr_ajax_enabled );
 
+	        if (isPixelCogActive() ) {
+		        if (isset($core_options['woo_purchase_value_option'])) {
+                    $core_options = $this->updateDefaultNoCogOption($core_options,'woo_purchase_value_option','woo_purchase_value_cog');
+		        }
+		        if (isset($core_options['woo_view_content_value_option'])) {
+                    $core_options = $this->updateDefaultNoCogOption($core_options,'woo_view_content_value_option','woo_content_value_cog');
+                }
+		        if (isset($core_options['woo_add_to_cart_value_option'])) {
+                    $core_options = $this->updateDefaultNoCogOption($core_options,'woo_add_to_cart_value_option','woo_add_to_cart_value_cog');
+                }
+		        if (isset($core_options['woo_initiate_checkout_value_option'])) {
+                    $core_options = $this->updateDefaultNoCogOption($core_options,'woo_initiate_checkout_value_option','woo_initiate_checkout_value_cog');
+                }
+	        }
+
             // update core options
             $this->updateOptions( $core_options );
         	
@@ -574,6 +597,17 @@ final class PYS extends Settings implements Plugin {
 	        
         }
 	    
+    }
+
+    private function updateDefaultNoCogOption($core_options,$optionName,$defaultOptionName) {
+        $val = $core_options[$optionName];
+        $currentVal = $this->getOption($optionName);
+        if($val != 'cog') {
+            $core_options[$defaultOptionName] = $val;
+        } elseif ( $currentVal != 'cog' ) {
+            $core_options[$defaultOptionName] = $currentVal;
+        }
+        return $core_options;
     }
     
     private function adminResetSettings() {
@@ -681,6 +715,44 @@ final class PYS extends Settings implements Plugin {
 		    
 	    }
     
+    }
+
+    function restoreSettingsAfterCog() {
+        $old = Facebook()->getOption("woo_complete_registration_custom_value_old");
+        if(!empty($old) ) {
+            Facebook()->updateOptions(array(
+                "woo_complete_registration_custom_value" => $old,
+                'woo_complete_registration_custom_value_old' => ""));
+        }
+        $params = array();
+        $oldPurchase = $this->getOption("woo_purchase_value_cog");
+        $oldContent = $this->getOption("woo_content_value_cog");
+        $oldAddCart = $this->getOption("woo_add_to_cart_value_cog");
+        $oldInitCheckout = $this->getOption("woo_initiate_checkout_value_cog");
+
+        if($this->getOption('woo_purchase_value_option') == 'cog') {
+            if(!empty($oldPurchase)) $params['woo_purchase_value_option'] = $oldPurchase;
+            else $params['woo_purchase_value_option'] = "price";
+        }
+        if($this->getOption('woo_view_content_value_option') == 'cog') {
+            if(!empty($oldContent)) $params['woo_view_content_value_option'] = $oldContent;
+            else $params['woo_view_content_value_option'] = "price";
+        }
+        if($this->getOption('woo_add_to_cart_value_option') == 'cog') {
+            if(!empty($oldAddCart)) $params['woo_add_to_cart_value_option'] = $oldAddCart;
+            else $params['woo_add_to_cart_value_option'] = "price";
+        }
+        if($this->getOption('woo_initiate_checkout_value_option') == 'cog') {
+            if(!empty($oldInitCheckout)) $params['woo_initiate_checkout_value_option'] = $oldInitCheckout;
+            else $params['woo_initiate_checkout_value_option'] = "price";
+        }
+
+        $params['woo_purchase_value_cog'] = '';
+        $params['woo_content_value_cog'] = '';
+        $params['woo_add_to_cart_value_cog'] = '';
+        $params['woo_initiate_checkout_value_cog'] = '';
+
+        $this->updateOptions($params);
     }
 
 }

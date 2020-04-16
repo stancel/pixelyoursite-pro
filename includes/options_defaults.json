@@ -117,5 +117,10 @@
   "edd_view_content_value_enabled": false,
   "edd_view_content_value_option": "price",
   "edd_view_content_value_percent": 0,
-  "edd_view_content_value_global": 0
+  "edd_view_content_value_global": 0,
+
+  "woo_purchase_value_cog": "",
+  "woo_content_value_cog": "",
+  "woo_add_to_cart_value_cog": "",
+  "woo_initiate_checkout_value_cog": ""
 }

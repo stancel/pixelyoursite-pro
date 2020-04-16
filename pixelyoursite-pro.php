@@ -4,16 +4,16 @@
  * Plugin Name: PixelYourSite PRO
  * Plugin URI: http://www.pixelyoursite.com/
  * Description: Implement the Facebook Pixel, Google Analytics, and the Google Ads Tag. Track key actions with automatic events, or create your own events. WooCommerce and EDD fully supported, with Facebook Dynamic Ads Pixel set-up,  Google Analytics Enhanced Ecommerce, and Dynamic Remarketing.
- * Version: 7.3.11
+ * Version: 7.5.1
  * Author: PixelYourSite
  * Author URI: http://www.pixelyoursite.com
  * License URI: http://www.pixelyoursite.com/pixel-your-site-pro-license
  *
  * Requires at least: 4.4
- * Tested up to: 5.2.2
+ * Tested up to: 5.3.2
  *
  * WC requires at least: 2.6.0
- * WC tested up to: 3.9.0
+ * WC tested up to: 4.0
  *
  * Text Domain: pys
  */
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly.
 }
 
-define( 'PYS_VERSION', '7.3.11' );
+define( 'PYS_VERSION', '7.5.1' );
 define( 'PYS_PINTEREST_MIN_VERSION', '2.0.6' );
 define( 'PYS_SUPER_PACK_MIN_VERSION', '2.0.3' );
 define( 'PYS_BING_MIN_VERSION', '1.0.0' );
